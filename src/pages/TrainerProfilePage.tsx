@@ -135,7 +135,7 @@ const socialIcon = (name: string) => {
 // ── main page ───────────────────────────────────────────────────────────
 
 const TrainerProfilePage: React.FC = () => {
-  const { trainerId } = useParams<{ trainerId: string }>();
+  const { trainerSlug  } = useParams<{ trainerSlug : string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trainer, setTrainer] = useState<Trainer | null>(null);
@@ -146,8 +146,9 @@ const TrainerProfilePage: React.FC = () => {
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    if (!trainerId) {
+    if (!trainerSlug ) {
       setError("Trainer not found.");
+    
       setLoading(false);
       return;
     }
@@ -156,7 +157,7 @@ const TrainerProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${API_BASE_URL}/${trainerId}`);
+        const res = await fetch(`${API_BASE_URL}/${trainerSlug}`);
         if (!res.ok) {
           throw new Error(`Failed to fetch trainer: ${res.status}`);
         }
@@ -175,7 +176,7 @@ const TrainerProfilePage: React.FC = () => {
     };
 
     fetchProfile();
-  }, [trainerId]);
+  }, [trainerSlug]);
 
   const heroTitle = useMemo(() => user?.name || "Trainer", [user?.name]);
 
@@ -966,7 +967,7 @@ const TrainerProfilePage: React.FC = () => {
 
               {/* Invitation form */}
               <InvitationRequestCard
-                trainerId={trainer.userId}
+                trainerSlug={trainer.publicSlug}
                 trainerName={heroTitle}
               />
             </Stack>
@@ -1014,12 +1015,12 @@ const StatChip: React.FC<{
 // ── Invitation card with reCAPTCHA ─────────────────────────────────────
 
 interface InvitationRequestCardProps {
-  trainerId: string;
+  trainerSlug: string;
   trainerName: string;
 }
 
 const InvitationRequestCard: React.FC<InvitationRequestCardProps> = ({
-  trainerId,
+  trainerSlug,
   trainerName,
 }) => {
   const [values, setValues] = useState<InvitationFormValues>({ email: "" });
@@ -1059,7 +1060,7 @@ const InvitationRequestCard: React.FC<InvitationRequestCardProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trainerId,
+          trainerSlug,
           email: values.email.trim(),
           recaptchaToken,
         }),
