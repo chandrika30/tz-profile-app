@@ -68,7 +68,7 @@ export interface Testimonials {
 export interface Trainer {
   _id: string;
   userId: string;
-
+  publicSlug: string;
   isProfileCompleted: boolean;
   isSubscribed: boolean;
 
