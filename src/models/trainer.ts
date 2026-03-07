@@ -39,6 +39,7 @@ export interface ProfessionalInfo {
   languages: string[];
   profilePhoto: string;
   gallery: string[];
+  certificateFiles?: string[];
 }
 
 export interface Availability {

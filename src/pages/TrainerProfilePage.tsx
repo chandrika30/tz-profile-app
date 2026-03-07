@@ -212,6 +212,7 @@ const TrainerProfilePage: React.FC = () => {
   const primaryGallery = trainer.professional.gallery || [];
   const heroBgImage =
     primaryGallery[0] || trainer.professional.profilePhoto || user.avatarUrl;
+  const certificateImages = trainer.professional.certificateFiles || [];
 
   return (
     <Box
@@ -476,6 +477,46 @@ const TrainerProfilePage: React.FC = () => {
                       >
                         Certifications will be added soon.
                       </Typography>
+                    )}
+
+                    {certificateImages.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            color: "rgba(203,213,225,0.9)",
+                            mb: 1,
+                          }}
+                        >
+                          Certificate Images
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "repeat(auto-fill, minmax(120px, 1fr))",
+                            gap: 1,
+                          }}
+                        >
+                          {certificateImages.map((src, idx) => (
+                            <Box
+                              key={`${src}-${idx}`}
+                              component="img"
+                              src={src}
+                              alt={`Certificate ${idx + 1}`}
+                              sx={{
+                                width: "100%",
+                                aspectRatio: "1 / 1",
+                                objectFit: "cover",
+                                borderRadius: 2,
+                                border: "1px solid rgba(51,65,85,0.9)",
+                                backgroundColor: "rgba(15,23,42,0.65)",
+                              }}
+                              loading="lazy"
+                            />
+                          ))}
+                        </Box>
+                      </Box>
                     )}
                   </Grid>
                   <Grid item xs={12} sm={6}>
