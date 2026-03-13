@@ -27,6 +27,7 @@ import PlaceIcon from "@mui/icons-material/Place";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useParams } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
+import { Dialog, DialogContent } from "@mui/material";
 
 import { API_BASE_URL } from "../api";
 import { Trainer } from "../models/trainer";
@@ -141,6 +142,8 @@ const TrainerProfilePage: React.FC = () => {
   const [trainer, setTrainer] = useState<Trainer | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
 
   const theme = useTheme();
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
@@ -209,10 +212,25 @@ const TrainerProfilePage: React.FC = () => {
     );
   }
 
+
+  const handleOpenDialog = (src: string) => {
+  setSelectedImage(src);
+  setOpenDialog(true);
+};
+
+const handleCloseDialog = () => {
+  setOpenDialog(false);
+  setSelectedImage("");
+};
   const primaryGallery = trainer.professional.gallery || [];
   const heroBgImage =
     primaryGallery[0] || trainer.professional.profilePhoto || user.avatarUrl;
   const certificateImages = trainer.professional.certificateFiles || [];
+  const getYoutubeVideoId = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 
   return (
     <Box
@@ -447,38 +465,7 @@ const TrainerProfilePage: React.FC = () => {
                 </Typography>
 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ color: "rgba(203,213,225,0.9)", mb: 1 }}
-                    >
-                      Certifications
-                    </Typography>
-                    {trainer.professional.certifications?.length ? (
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        {trainer.professional.certifications.map((cert) => (
-                          <Chip
-                            key={cert}
-                            label={cert}
-                            size="small"
-                            sx={{
-                              backgroundColor: "rgba(30,64,175,0.2)",
-                              color: "rgba(191,219,254,1)",
-                              borderColor: "rgba(96,165,250,0.7)",
-                            }}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "rgba(148,163,184,0.8)" }}
-                      >
-                        Certifications will be added soon.
-                      </Typography>
-                    )}
-
+                 <Grid item xs={12} sm={6}>
                     {certificateImages.length > 0 && (
                       <Box sx={{ mt: 2 }}>
                         <Typography
@@ -488,7 +475,7 @@ const TrainerProfilePage: React.FC = () => {
                             mb: 1,
                           }}
                         >
-                          Certificate Images
+                          Certifications
                         </Typography>
                         <Box
                           sx={{
@@ -501,24 +488,63 @@ const TrainerProfilePage: React.FC = () => {
                           {certificateImages.map((src, idx) => (
                             <Box
                               key={`${src}-${idx}`}
-                              component="img"
-                              src={src}
-                              alt={`Certificate ${idx + 1}`}
+                              onClick={() => handleOpenDialog(src)}
                               sx={{
-                                width: "100%",
-                                aspectRatio: "1 / 1",
-                                objectFit: "cover",
-                                borderRadius: 2,
-                                border: "1px solid rgba(51,65,85,0.9)",
-                                backgroundColor: "rgba(15,23,42,0.65)",
+                                cursor: 'pointer',
+                                transition: 'transform 0.2s',
+                                '&:hover': {
+                                  transform: 'scale(1.05)',
+                                },
                               }}
-                              loading="lazy"
-                            />
+                            >
+                              <Box
+                                component="img"
+                                src={src}
+                                alt={`Certificate ${idx + 1}`}
+                                sx={{
+                                  width: "100%",
+                                  aspectRatio: "1 / 1",
+                                  objectFit: "cover",
+                                  borderRadius: 2,
+                                  border: "1px solid rgba(51,65,85,0.9)",
+                                  backgroundColor: "rgba(15,23,42,0.65)",
+                                }}
+                                loading="lazy"
+                              />
+                            </Box>
                           ))}
                         </Box>
                       </Box>
                     )}
+                  
+                    {/* Image Preview Dialog */}
+                    <Dialog
+                      open={openDialog}
+                      onClose={handleCloseDialog}
+                      maxWidth="md"
+                      fullWidth
+                      PaperProps={{
+                        sx: {
+                          backgroundColor: "rgba(15,23,42,0.95)",
+                          border: "1px solid rgba(51,65,85,0.9)",
+                        }
+                      }}
+                    >
+                      <DialogContent sx={{ p: 1 }}>
+                        <Box
+                          component="img"
+                          src={selectedImage}
+                          alt="Certificate preview"
+                          sx={{
+                            width: "100%",
+                            maxHeight: "80vh",
+                            objectFit: "contain",
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
                   </Grid>
+
                   <Grid item xs={12} sm={6}>
                     <Typography
                       variant="subtitle2"
@@ -1005,6 +1031,90 @@ const TrainerProfilePage: React.FC = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Media links */}
+              {trainer.professional.mediaLinks &&
+              trainer.professional.mediaLinks.length > 0 && (
+                <Card
+                  sx={{
+                    backgroundColor: "rgba(15,23,42,0.98)",
+                    border: "1px solid rgba(51,65,85,0.9)",
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="subtitle1" color="#e5e7eb" mb={1}>
+                      Training Sessions
+                    </Typography>
+                    <Stack spacing={2}>
+                      {trainer.professional.mediaLinks.map((s) => {
+                        const videoId = getYoutubeVideoId(s.link);
+                        return (
+                          <Box key={s.name + s.link}>
+              {videoId ? (
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: 0,
+                    paddingBottom: '56.25%', // 16:9 aspect ratio
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    border: "1px solid rgba(51,65,85,0.9)",
+                  }}
+                >
+                  <Box
+                    component="iframe"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title={s.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 0,
+                    }}
+                  />
+                </Box>
+                            ) : (
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                alignItems="center"
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{
+                                    color: "rgba(248,250,252,0.9)",
+                                    backgroundColor: "rgba(15,23,42,0.9)",
+                                    border: "1px solid rgba(51,65,85,0.9)",
+                                  }}
+                                >
+                                  {socialIcon(s.name)}
+                                </IconButton>
+                                <MUILink
+                                  href={s.link}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  underline="hover"
+                                  sx={{
+                                    color: "rgba(191,219,254,1)",
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  {s.name}
+                                </MUILink>
+                              </Stack>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Invitation form */}
               <InvitationRequestCard
