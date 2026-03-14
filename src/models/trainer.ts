@@ -22,6 +22,12 @@ export interface SocialLink {
   link: string;
 }
 
+export interface MediaLink {
+  name: string;
+  link: string;
+}
+
+
 export interface BankDetails {
   accountHolderName: string;
   accountNumber: string;
@@ -35,6 +41,7 @@ export interface ProfessionalInfo {
   yearsOfExperience: number;
   bio?: string;
   socialLinks?: SocialLink[];
+  mediaLinks?: MediaLink[];
   businessType: BusinessType;
   languages: string[];
   profilePhoto: string;
